@@ -1,0 +1,7 @@
+.idea
+.git
+.gitignore
+*.log
+deploy
+node_modules
+README.md

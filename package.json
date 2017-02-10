@@ -1,0 +1,24 @@
+{
+  "name": "kubernetes-ecr-autodeploy",
+  "version": "1.0.0",
+  "description": "Kubernetes ECR auto-deploy server.",
+  "main": "server.js",
+  "scripts": {
+    "test": "mocha test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Andr3wHur5t/kubernetes-ecr-autodeploy.git"
+  },
+  "author": "Andr3wHur5t",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Andr3wHur5t/kubernetes-ecr-autodeploy/issues"
+  },
+  "homepage": "https://github.com/Andr3wHur5t/kubernetes-ecr-autodeploy#readme",
+  "dependencies": {
+    "async": "^2.1.4",
+    "coffee-script": "^1.12.3",
+    "lodash": "^4.17.4"
+  }
+}
