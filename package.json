@@ -18,7 +18,11 @@
   "homepage": "https://github.com/Andr3wHur5t/kubernetes-ecr-autodeploy#readme",
   "dependencies": {
     "async": "^2.1.4",
+    "aws-sdk": "^2.11.0",
     "coffee-script": "^1.12.3",
+    "debug": "^2.6.0",
+    "event-emitter": "^0.3.4",
+    "k8s": "^0.4.9",
     "lodash": "^4.17.4"
   }
 }

@@ -1,0 +1,53 @@
+# Make sure to set your other required secrets first.
+#
+# Use this file by running `kubectl create -f <this-file>`
+
+###
+# This creates a service account so we can get an auth token for the janitor.
+###
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: janitor-access-account
+
+---
+###
+# This Creates a secret using our service account so we can mount it to the Application.
+###
+apiVersion: v1
+kind: Secret
+metadata:
+  name: janitor-access-token
+  annotations:
+    kubernetes.io/service-account.name: janitor-access-account
+type: kubernetes.io/service-account-token
+
+---
+###
+# This is our Auto deploy server Pod, currently we dont support HA deployments so we only have one.
+###
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ecr-janitor
+  namespace: kube-system
+  labels:
+    app: ecr-janitor
+    roles: auto-deploy
+spec:
+  containers:
+    -
+      name: janitor
+      image: ""
+      imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+      resources:
+        limit:
+          cpu: 0.05
+          memory: 75Mi
+        request:
+          cpu: 0.025
+          memory: 25Mi
+      env:
+        - name: ""
+          value: ""

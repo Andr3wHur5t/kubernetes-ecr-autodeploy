@@ -1,0 +1,18 @@
+{
+  "updatedAt": "2-10-2017",
+  "deployTargets": [
+    {
+      "friendlyName": "Your Application",
+      "comments": "This string will be used for UI later; builds expected to have incrementing numbers ie `build123` and `build124`",
+      "fromEcr": {
+        "repositoryName": "your-ecr-repo-name",
+        "whereMatches": "build(\\d*)"
+      },
+      "toReplicationController": {
+        "namespace": "default",
+        "rcName": "your-replication-controller-name",
+        "targetContainer": "your-template-container-name"
+      }
+    }
+  ]
+}
