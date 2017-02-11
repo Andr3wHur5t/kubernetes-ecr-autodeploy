@@ -40,15 +40,15 @@ spec:
   containers:
     -
       name: ecr-auto-deploy
-      image: "andr3whur5t/kubernetes-ecr-autodeploy:v0.11"
+      image: "andr3whur5t/kubernetes-ecr-autodeploy:v0.2"
       imagePullPolicy: IfNotPresent
       resources:
         limits:
           cpu: 0.1
-          memory: 175Mi
+          memory: 125Mi
         requests:
-          cpu: 0.025
-          memory: 100Mi
+          cpu: 0.01
+          memory: 75Mi
       env:
         - name: "NODE_ENV"
           value: "production"
