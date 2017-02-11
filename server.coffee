@@ -8,31 +8,40 @@ ECR = require "./app/ecr"
 Kube = require "./app/kube"
 { deployCheck } = require "./app/deploy"
 
-syncRemoteState = ({ecr, kube}, done) ->
-# TODO: Get remote state from S3
-  deploymentSpec = require("./auto-deploy-spec.json")
-  kubeNamespaces = _.map deploymentSpec.deployTargets, "toReplicationController.namespace"
-  async.parallel {
-
-    ecrRepos: (next) ->
-      debugSync "Syncing ECR state..."
-      ecr.getAllTags (err, data) ->
-        debugSync "Synced ECR state!"
-        next err, data
-
-    kubeStatus: (next) ->
-      debugSync "Syncing kube cluster state..."
-      kube.getReplicationControllers kubeNamespaces, (err, data) ->
-        debugSync "Synced kube cluster state!"
-        next err, data
-
-  }, (err, currentState) ->
+getDeploymentSpec = (s3, done) ->
+  params = {
+    Bucket: config.S3_DEPLOYMENT_BUCKET
+    Key: config.S3_DEPLOYMENT_KEY
+  }
+  s3.getObject params, (err, data) ->
     return done err if err?
-    currentState.deploymentSpec = deploymentSpec
-    done null, currentState
+    return done null, JSON.parse data.Body.toString()
 
-performUpdates = ({kube, ecr}, reportErr) ->
-  syncRemoteState {kube, ecr}, (err, currentState) ->
+syncRemoteState = ({ecr, kube, s3}, done) ->
+  getDeploymentSpec s3, (err, deploymentSpec) ->
+    return done err if err?
+    kubeNamespaces = _.map deploymentSpec.deployTargets, "toReplicationController.namespace"
+    async.parallel {
+
+      ecrRepos: (next) ->
+        debugSync "Syncing ECR state..."
+        ecr.getAllTags (err, data) ->
+          debugSync "Synced ECR state!"
+          next err, data
+
+      kubeStatus: (next) ->
+        debugSync "Syncing kube cluster state..."
+        kube.getReplicationControllers kubeNamespaces, (err, data) ->
+          debugSync "Synced kube cluster state!"
+          next err, data
+
+    }, (err, currentState) ->
+      return done err if err?
+      currentState.deploymentSpec = deploymentSpec
+      done null, currentState
+
+performUpdates = ({kube, ecr, s3}, reportErr) ->
+  syncRemoteState {kube, ecr, s3}, (err, currentState) ->
     return reportErr if err?
 
     # Perform our deploy check and update

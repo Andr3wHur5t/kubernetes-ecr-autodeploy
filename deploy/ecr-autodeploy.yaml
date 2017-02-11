@@ -8,7 +8,8 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: janitor-access-account
+  namespace: kube-system
+  name: ecr-auto-deploy-account
 
 ---
 ###
@@ -17,9 +18,10 @@ metadata:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: janitor-access-token
+  name: ecr-auto-deploy-access-token
+  namespace: kube-system
   annotations:
-    kubernetes.io/service-account.name: janitor-access-account
+    kubernetes.io/service-account.name: "ecr-auto-deploy-account"
 type: kubernetes.io/service-account-token
 
 ---
@@ -29,25 +31,65 @@ type: kubernetes.io/service-account-token
 apiVersion: v1
 kind: Pod
 metadata:
-  name: ecr-janitor
+  name: ecr-auto-deploy
   namespace: kube-system
   labels:
-    app: ecr-janitor
+    app: ecr-auto-deploy
     roles: auto-deploy
 spec:
   containers:
     -
-      name: janitor
-      image: ""
+      name: ecr-auto-deploy
+      image: "andr3whur5t/kubernetes-ecr-autodeploy:v0.11"
       imagePullPolicy: IfNotPresent
-      restartPolicy: Always
       resources:
-        limit:
-          cpu: 0.05
-          memory: 75Mi
-        request:
+        limits:
+          cpu: 0.1
+          memory: 175Mi
+        requests:
           cpu: 0.025
-          memory: 25Mi
+          memory: 100Mi
       env:
-        - name: ""
-          value: ""
+        - name: "NODE_ENV"
+          value: "production"
+        - name: "PERIOD_TO_POLL_SECONDS"
+          value: "60"
+
+        # Set the bucket name you put the config file here
+        - name: "S3_DEPLOYMENT_BUCKET"
+          value: "YOUR_BUCKET_NAME"
+
+        # Set this to the Path + Name of the config file
+        - name: "S3_DEPLOYMENT_KEY"
+          value: "auto-deploy-spec.json"
+
+        ## Use this to change your AWS S3 region
+        - name: "AWS_S3_REGION"
+          value: "us-east-1"
+
+        ## Use this to change your AWS ERC region
+        - name: "AWS_ERC_REGION"
+          value: "us-east-1"
+
+        # Use this to bypass ssl validation; Not recomended, but can be used to debug issues.
+        - name: "KUBE_STRICT_SSL"
+          value: "true"
+
+        # Need AWS to talk to ECR and S3, add your credentials as secrets
+        - name: "AWS_ACCESS_KEY_ID"
+          valueFrom:
+            secretKeyRef:
+              name: "ecr-auto-deploy-iam"
+              key: "id"
+        - name: "AWS_SECRET_ACCESS_KEY"
+          valueFrom:
+            secretKeyRef:
+              name: "ecr-auto-deploy-iam"
+              key: "secret"
+
+        # This gives the Pod access to the service account so we can deploy changes.
+        - name: "KUBE_AUTH_TOKEN"
+          valueFrom:
+            secretKeyRef:
+              name: "ecr-auto-deploy-access-token"
+              key: "token"

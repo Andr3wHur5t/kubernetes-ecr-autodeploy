@@ -4,6 +4,7 @@
   "description": "Kubernetes ECR auto-deploy server.",
   "main": "server.js",
   "scripts": {
+    "start": "DEBUG=autodeploy* ./node_modules/coffee-script/bin/coffee server.coffee",
     "test": "mocha test"
   },
   "repository": {
