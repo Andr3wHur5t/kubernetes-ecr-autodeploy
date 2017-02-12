@@ -1,6 +1,6 @@
 _ = require "lodash"
 async = require "async"
-debugSync = require("debug") "autodeploy:deployAgent"
+debug = require("debug") "autodeploy:deployAgent"
 {
   parseDeployTarget
   getCurrentDeployedTagForTarget
@@ -16,14 +16,18 @@ checkDeployTarget = ({kube, currentState}, target, done) ->
   currentKubeTag = getCurrentDeployedTagForTarget currentState, deployTarget
   allRepoTags = getAllRepoTags currentState, deployTarget
   bestTag = getBestTagForTarget deployTarget, _.flatten(allRepoTags, [currentKubeTag])
-  console.log "BEST === ", bestTag
   return done null if bestTag is currentKubeTag
+  debug "NEW TAG: '#{bestTag}' will be deployed for '#{target.friendlyName}'..."
 
-  debugSync "NEW TAG: '#{bestTag}' will be deployed for '#{target.friendlyName}'..."
-  # Our best Tag is not deployed do it.
-  done()
-
-  # TODO: Rollout New Image
+  kube.rollingUpdate {
+    namespace:
+    rcName:
+    imageURI: [getTargetRepo(currentState, deployTarget).repositoryUri, bestTag].join ":"
+  }, (err, didExecute) ->
+    return done err if err?
+    return done null unless didExecute
+    debug "Finished Deploying '#{bestTag}' to '#{target.friendlyName}'..."
+    done null
 
 deployCheck = ({kube, ecr}, currentState, done) ->
   done or= ->
@@ -32,7 +36,7 @@ deployCheck = ({kube, ecr}, currentState, done) ->
     ((target, next) -> checkDeployTarget {kube, ecr, currentState} , target, next),
     (err) ->
       return done err if err?
-      debugSync "Finished Checking deployments..."
+      debug "Finished Checking deployments..."
       done null
   )
 

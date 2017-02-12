@@ -16,6 +16,7 @@ tryFile = (pathToFile) ->
   return fs.readFileSync(resolvedPath).toString()
 
 KUBE_SECRET_PATH = env("KUBE_SECRET_PATH", "/var/run/secrets/kubernetes.io/serviceaccount")
+KUBE_SERVICE_ACCOUNT_TOKEN_PATH = env(KUBE_SECRET_PATH + "/token")
 module.exports = {
   IS_PROD
 
@@ -24,9 +25,10 @@ module.exports = {
 
   ### Kubernetes ###
   KUBE_SECRET_PATH
+  KUBE_SERVICE_ACCOUNT_TOKEN_PATH
   KUBE_API_URI: env("KUBE_API_URI", "https://" + envForceProd("KUBERNETES_SERVICE_HOST", "localhost"))
   KUBE_API_VERSION: env("KUBE_API_VERSION", "/api/v1")
-  KUBE_AUTH_TOKEN: env("KUBE_AUTH_TOKEN", tryFile(KUBE_SECRET_PATH + "/token"))
+  KUBE_AUTH_TOKEN: env("KUBE_AUTH_TOKEN", tryFile(KUBE_SERVICE_ACCOUNT_TOKEN_PATH))
   KUBE_STRICT_SSL: env("KUBE_STRICT_SSL", "true") is "true"
 
   ### AWS ECR ###
