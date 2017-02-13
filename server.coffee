@@ -18,7 +18,7 @@ reportError = (err) ->
 onDeploy = (target, buildTag, status) ->
 
   # Example on finished Deploy Hook Using Rollbar
-  return unless target?.rollbar? or status is DEPLOY_STAUS.finished
+  return if (not target?.rollbar?) or (status isnt DEPLOY_STAUS.finished)
   request.post(
     'https://api.rollbar.com/api/1/deploy/',
     form:
