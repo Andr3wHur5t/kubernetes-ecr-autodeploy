@@ -7,7 +7,7 @@ config = require "./config"
 ECR = require "./app/ecr"
 Kube = require "./app/kube"
 request = require "request"
-{ deployCheck, DEPLOY_STAUS } = require "./app/deploy"
+{ deployCheck, DEPLOY_STATUS } = require "./app/deploy"
 
 # You Can add your error reporting service here
 reportError = (err) ->
@@ -18,7 +18,7 @@ reportError = (err) ->
 onDeploy = (target, buildTag, status) ->
 
   # Example on finished Deploy Hook Using Rollbar
-  return if (not target?.rollbar?) or (status isnt DEPLOY_STAUS.finished)
+  return if (not target?.rollbar?) or (status isnt DEPLOY_STATUS.finished)
   request.post(
     'https://api.rollbar.com/api/1/deploy/',
     form:
