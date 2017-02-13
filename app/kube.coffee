@@ -2,11 +2,7 @@ _ = require "lodash"
 K8s = require "k8s"
 async = require "async"
 debug = require("debug")("autodeploy:kube")
-{call} = require "./spawnOutput"
-{
-  KUBE_SERVICE_ACCOUNT_TOKEN_PATH
-  KUBE_API_URI
-} = require "../config"
+{call, REPORT_ALL_DATA} = require "./spawnOutput"
 
 parseImage = (imageURI) ->
   [repoURL, tag] = imageURI.split ":"
@@ -22,8 +18,20 @@ parseReplicationController = ({metadata, spec} = {}) ->
   }
 
 class kube
-  constructor: (opts) ->
-    @_kube = K8s.api opts
+  constructor: (@opts, done) ->
+    @_kube = K8s.api @opts
+    # Configure kubectl so we can perform rolling updates
+    call(
+      "kubectl",
+      [
+        "config"
+        "set-cluster"
+        "default-cluster"
+        "--server=#{@opts.endpoint}"
+        "--certificate-authority=#{@opts.caPath}"
+      ],
+      done
+    )
 
   getRC: (namespace, done) ->
     @_kube.get "namespaces/#{namespace}/replicationcontrollers", (err, data) ->
@@ -37,23 +45,19 @@ class kube
       return done null, _.flatten replicationControllers
 
   rollingUpdate: ({namespace, rcName, imageURI, updatePeriod= "5s"}, done) ->
-    # TODO: Add mutex to prevent double deploy
-    # TODO: Make this work using out kube lib
+    debug "Rolling update of '#{rcName}' in '#{namespace}' using '#{imageURI}'"
     call(
       "kubectl",
       [
         "rolling-update"
         rcName
-        "--image='#{imageURI}'"
-        "--update-period='#{updatePeriod}'"
-        "--namespace='#{namespace}'"
-        "--service-account-private-key-file='#{KUBE_SERVICE_ACCOUNT_TOKEN_PATH}'"
-        "-s='#{KUBE_API_URI}'"
+        "--image=#{imageURI}"
+        "--update-period=#{updatePeriod}"
+        "--namespace=#{namespace}"
+        "--token='#{@opts.auth.token}'"
       ],
-      (err, output) ->
-        return done err, false if err?
-        _.each output.split("/n"), debug
-        return done null, true if err?
+      REPORT_ALL_DATA,
+      (err) -> return done err, (err?)
     )
 
 module.exports = kube

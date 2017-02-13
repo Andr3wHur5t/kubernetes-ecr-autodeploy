@@ -16,7 +16,8 @@ tryFile = (pathToFile) ->
   return fs.readFileSync(resolvedPath).toString()
 
 KUBE_SECRET_PATH = env("KUBE_SECRET_PATH", "/var/run/secrets/kubernetes.io/serviceaccount")
-KUBE_SERVICE_ACCOUNT_TOKEN_PATH = env(KUBE_SECRET_PATH + "/token")
+KUBE_SERVICE_ACCOUNT_TOKEN_PATH = env("KUBE_SERVICE_ACCOUNT_TOKEN_PATH", KUBE_SECRET_PATH + "/token")
+KUBE_CA_CERT_PATH = env("KUBE_CA_CERT_PATH", KUBE_SECRET_PATH + "/ca.crt")
 module.exports = {
   IS_PROD
 
@@ -26,6 +27,7 @@ module.exports = {
   ### Kubernetes ###
   KUBE_SECRET_PATH
   KUBE_SERVICE_ACCOUNT_TOKEN_PATH
+  KUBE_CA_CERT_PATH
   KUBE_API_URI: env("KUBE_API_URI", "https://" + envForceProd("KUBERNETES_SERVICE_HOST", "localhost"))
   KUBE_API_VERSION: env("KUBE_API_VERSION", "/api/v1")
   KUBE_AUTH_TOKEN: env("KUBE_AUTH_TOKEN", tryFile(KUBE_SERVICE_ACCOUNT_TOKEN_PATH))
