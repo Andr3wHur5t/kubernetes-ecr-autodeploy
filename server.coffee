@@ -6,7 +6,7 @@ debugSync = require("debug") "autodeploy:sync"
 config = require "./config"
 ECR = require "./app/ecr"
 Kube = require "./app/kube"
-{ deployCheck } = require "./app/deploy"
+{ deployCheck, DEPLOY_STAUS } = require "./app/deploy"
 
 # You Can add your error reporting service here
 reportError = (err) ->
@@ -15,6 +15,17 @@ reportError = (err) ->
 
 # You can add your deploy messaging here
 onDeploy = (target, buildTag, status) ->
+
+  return unless target?.rollbar? and status is DEPLOY_STAUS.finished
+  # Example on finished Deploy Hook Using Rollbar
+  request.post(
+    'https://api.rollbar.com/api/1/deploy/',
+    form:
+      access_token: target.rollbar.access_token
+      environment: target.rollbar.enviroment
+      revision: buildTag
+  )
+
 
 
 performUpdates = ({kube, ecr, s3}) ->
