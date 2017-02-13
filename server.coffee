@@ -16,8 +16,8 @@ reportError = (err) ->
 # You can add your deploy messaging here
 onDeploy = (target, buildTag, status) ->
 
-  return unless target?.rollbar? and status is DEPLOY_STAUS.finished
   # Example on finished Deploy Hook Using Rollbar
+  return unless target?.rollbar? and status is DEPLOY_STAUS.finished
   request.post(
     'https://api.rollbar.com/api/1/deploy/',
     form:
@@ -27,13 +27,12 @@ onDeploy = (target, buildTag, status) ->
   )
 
 
-
 performUpdates = ({kube, ecr, s3}) ->
-  syncRemoteState {kube, ecr, s3}, (err, currentState) ->
+  syncRemoteState {kube, ecr, s3,}, (err, currentState) ->
     return reportError if err?
 
     # Perform our deploy check and update
-    deployCheck {kube, ecr}, currentState, reportError
+    deployCheck {kube, ecr, onDeploy}, currentState, reportError
 
 # NOTE: You can add other stuff here which uses the remote state
 
