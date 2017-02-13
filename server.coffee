@@ -6,6 +6,7 @@ debugSync = require("debug") "autodeploy:sync"
 config = require "./config"
 ECR = require "./app/ecr"
 Kube = require "./app/kube"
+request = require "request"
 { deployCheck, DEPLOY_STAUS } = require "./app/deploy"
 
 # You Can add your error reporting service here
