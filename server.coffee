@@ -18,15 +18,15 @@ reportError = (err) ->
 onDeploy = (target, buildTag, status) ->
 
   # Example on finished Deploy Hook Using Rollbar
-  return if (not target?.rollbar?) or (status isnt DEPLOY_STATUS.finished)
+  return unless target?.rollbar?
+  return unless status is DEPLOY_STATUS.finished
   request.post(
     'https://api.rollbar.com/api/1/deploy/',
     form:
       access_token: target.rollbar.access_token
-      environment: target.rollbar.enviroment
+      environment: target.rollbar.environment
       revision: buildTag
   )
-
 
 performUpdates = ({kube, ecr, s3}) ->
   syncRemoteState {kube, ecr, s3,}, (err, currentState) ->
